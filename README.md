@@ -2,6 +2,8 @@
 
 Nest AI transforms how developers and security professionals interact with OWASP resources by providing a natural language interface to discover projects, events, issues, contributors, and chapters. Instead of navigating complex APIs or documentation, users can simply ask questions in plain English and receive intelligent, contextual responses with interactive visual cards.
 
+![nest-ai-interface](public/interface.png)
+
 ## The Problem
 
 The OWASP ecosystem is vast and rich with resources, but discovering relevant projects, finding contribution opportunities, or locating local chapters can be challenging for newcomers and experienced developers alike. Traditional API interactions require understanding endpoints, parameters, and data structures, creating a barrier to entry.
