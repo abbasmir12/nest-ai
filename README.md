@@ -1,9 +1,5 @@
 # Nest AI
 
-An AI-powered conversational interface for the OWASP Nest API ecosystem, built for the OWASP Nest API Hackathon (November 1-15, 2025).
-
-## Overview
-
 Nest AI transforms how developers and security professionals interact with OWASP resources by providing a natural language interface to discover projects, events, issues, contributors, and chapters. Instead of navigating complex APIs or documentation, users can simply ask questions in plain English and receive intelligent, contextual responses with interactive visual cards.
 
 ## The Problem
