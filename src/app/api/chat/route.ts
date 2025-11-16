@@ -1033,11 +1033,12 @@ You MUST return ONLY this - nothing else:
 \`\`\`
 
 **DO NOT ADD:**
-- ❌ Text before the json block ("Here is the response:")
-- ❌ Text after the json block ("Hope this helps!")
+- ❌ Text before the json block like ("Here is the response:")
+- ❌ Text after the json block like ("Hope this helps!")
 - ❌ Explanations or commentary
 - ❌ Multiple json blocks
 - ❌ Anything except the single json code block
+Like overall don't add starting or ending phrases or text etc in your response, try to understand What I'm saying like before json don't add words or sentence like "Here is your json..." or anything else. I know U can understand better. This is necessary because if u didn't follow the rules users will only see hallucinated text not stylish cards etc cauz our program specially wait for your specific json response and if u add any starting or ending text etc in that response the program will not work. Hope u understood!
 
 **JUST RETURN THE JSON BLOCK - NOTHING ELSE!**`;
 
