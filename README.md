@@ -2,6 +2,7 @@
 
 Nest AI transforms how developers and security professionals interact with OWASP resources by providing a natural language interface powered by **real-time data from the OWASP Nest API**. Users can discover projects, events, issues, contributors, and chapters by simply asking questions in plain English and receiving intelligent, contextual responses with interactive visual cards.
 
+![nest-ai](public/logo.png)
 ## The Problem
 
 The OWASP ecosystem is vast and rich with resources, but discovering relevant projects, finding contribution opportunities, or locating local chapters can be challenging for newcomers and experienced developers alike. Traditional API interactions require understanding endpoints, parameters, and data structures, creating a barrier to entry.
@@ -18,13 +19,14 @@ Nest AI bridges this gap by combining three powerful technologies:
 
 **Nest AI now uses real-time data from the OWASP Nest API!** 
 
+![interface](public/UI2.png)
 Thanks to the Model Context Protocol (MCP) integration, all queries fetch live data directly from OWASP's official API. This means:
 
-- ✅ **Real Projects**: Discover actual OWASP projects with current status, leaders, and links
-- ✅ **Live Events**: Get up-to-date information on upcoming conferences, meetups, and workshops
-- ✅ **Active Issues**: Find real contribution opportunities from OWASP GitHub repositories
-- ✅ **Current Contributors**: See who's actively contributing to OWASP projects right now
-- ✅ **Active Chapters**: Connect with real local OWASP chapters in your area
+- **Real Projects**: Discover actual OWASP projects with current status, leaders, and links
+- **Live Events**: Get up-to-date information on upcoming conferences, meetups, and workshops
+- **Active Issues**: Find real contribution opportunities from OWASP GitHub repositories
+- **Current Contributors**: See who's actively contributing to OWASP projects right now
+- **Active Chapters**: Connect with real local OWASP chapters in your area
 
 The MCP server handles all API authentication and data fetching, providing a seamless experience where users simply ask questions and receive accurate, current information from the OWASP ecosystem.
 
