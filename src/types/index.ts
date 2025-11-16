@@ -13,6 +13,12 @@ export interface DisplayCardData {
   link?: string;
   icon?: string;
   type?: "project" | "event" | "issue" | "contributor" | "chapter";
+  metadata?: {
+    leaders?: string[];
+    level?: string;
+    github?: string;
+    [key: string]: any;
+  };
 }
 
 export interface AIConfig {
@@ -32,6 +38,7 @@ export interface NestAPIResponse {
 export interface ChatRequest {
   message: string;
   config: AIConfig;
+  nestApiKey?: string;
 }
 
 export interface ChatResponse {

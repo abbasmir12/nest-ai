@@ -1,9 +1,12 @@
 /**
  * MCP Client for OWASP Nest API
  * 
- * This client communicates with the MCP server to fetch data from OWASP Nest API.
- * In production, this would use the actual MCP protocol over stdio or HTTP.
+ * This client communicates with the MCP server using the standard
+ * MCP SSE (Server-Sent Events) transport protocol.
  */
+
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 
 export interface MCPTool {
   name: string;
@@ -20,9 +23,69 @@ export interface MCPCallResult {
 
 class MCPClient {
   private baseUrl: string;
+  private client: Client | null = null;
+  private transport: SSEClientTransport | null = null;
+  private connected: boolean = false;
 
   constructor(baseUrl: string = "http://localhost:3001") {
     this.baseUrl = baseUrl;
+  }
+
+  /**
+   * Connect to the MCP SSE server
+   */
+  async connect(): Promise<void> {
+    if (this.connected) {
+      return;
+    }
+
+    try {
+      console.log('[MCP Client] Connecting to SSE server...');
+      
+      this.client = new Client(
+        {
+          name: "nest-ai-client",
+          version: "1.0.0",
+        },
+        {
+          capabilities: {},
+        }
+      );
+
+      this.transport = new SSEClientTransport(
+        new URL(`${this.baseUrl}/sse`)
+      );
+
+      await this.client.connect(this.transport);
+      this.connected = true;
+      
+      console.log('[MCP Client] ✅ Connected to MCP SSE server');
+    } catch (error) {
+      console.error('[MCP Client] Failed to connect:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Disconnect from the MCP server
+   */
+  async disconnect(): Promise<void> {
+    if (this.client) {
+      await this.client.close();
+      this.client = null;
+      this.transport = null;
+      this.connected = false;
+      console.log('[MCP Client] Disconnected');
+    }
+  }
+
+  /**
+   * Ensure connection before operations
+   */
+  private async ensureConnected(): Promise<void> {
+    if (!this.connected) {
+      await this.connect();
+    }
   }
 
   /**

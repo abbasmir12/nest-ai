@@ -90,6 +90,43 @@ export function ChatInterface() {
     model: "meta-llama/Llama-3.1-8B-Instruct",
     apiKey: "",
   });
+  const [nestApiKey, setNestApiKey] = useState("");
+
+  // Load API keys from localStorage on mount
+  useEffect(() => {
+    const savedHfKey = localStorage.getItem("hf_api_key");
+    const savedNestKey = localStorage.getItem("nest_api_key");
+    const savedModel = localStorage.getItem("ai_model");
+
+    if (savedHfKey) {
+      setConfig((prev) => ({ ...prev, apiKey: savedHfKey }));
+    }
+    if (savedNestKey) {
+      setNestApiKey(savedNestKey);
+    }
+    if (savedModel) {
+      setConfig((prev) => ({ ...prev, model: savedModel }));
+    }
+  }, []);
+
+  // Save API keys to localStorage when they change
+  useEffect(() => {
+    if (config.apiKey) {
+      localStorage.setItem("hf_api_key", config.apiKey);
+    }
+  }, [config.apiKey]);
+
+  useEffect(() => {
+    if (nestApiKey) {
+      localStorage.setItem("nest_api_key", nestApiKey);
+    }
+  }, [nestApiKey]);
+
+  useEffect(() => {
+    if (config.model) {
+      localStorage.setItem("ai_model", config.model);
+    }
+  }, [config.model]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -112,75 +149,12 @@ export function ChatInterface() {
   const handleSubmit = async () => {
     if (!value.trim()) return;
 
-    // Mock cards for testing (remove this when API is working)
-    const mockCards = [
-      {
-        title: "OWASP ZAP",
-        description: "The world's most widely used web app scanner. Free and open source.",
-        subtitle: "Security Testing Tool",
-        imgSrc: "https://i.pravatar.cc/150?img=1",
-        link: "https://www.zaproxy.org/"
-      },
-      {
-        title: "OWASP Top 10",
-        description: "Standard awareness document for developers and web application security.",
-        subtitle: "Security Standard",
-        imgSrc: "https://i.pravatar.cc/150?img=2",
-        link: "https://owasp.org/www-project-top-ten/"
-      },
-      {
-        title: "OWASP ModSecurity",
-        description: "Open source web application firewall (WAF) engine.",
-        subtitle: "Web Application Firewall",
-        imgSrc: "https://i.pravatar.cc/150?img=3",
-        link: "https://owasp.org/www-project-modsecurity/"
-      },
-      {
-        title: "OWASP Dependency-Check",
-        description: "Software composition analysis tool that detects publicly disclosed vulnerabilities.",
-        subtitle: "Vulnerability Scanner",
-        imgSrc: "https://i.pravatar.cc/150?img=4",
-        link: "https://owasp.org/www-project-dependency-check/"
-      },
-      {
-        title: "OWASP ASVS",
-        description: "Application Security Verification Standard - a framework of security requirements.",
-        subtitle: "Security Framework",
-        imgSrc: "https://i.pravatar.cc/150?img=5",
-        link: "https://owasp.org/www-project-application-security-verification-standard/"
-      },
-      {
-        title: "OWASP Juice Shop",
-        description: "Probably the most modern and sophisticated insecure web application.",
-        subtitle: "Training Platform",
-        imgSrc: "https://i.pravatar.cc/150?img=6",
-        link: "https://owasp.org/www-project-juice-shop/"
-      },
-      {
-        title: "OWASP WebGoat",
-        description: "Deliberately insecure application for teaching web security lessons.",
-        subtitle: "Educational Tool",
-        imgSrc: "https://i.pravatar.cc/150?img=7",
-        link: "https://owasp.org/www-project-webgoat/"
-      }
-    ];
-
     if (!config.apiKey) {
-      // Show mock cards for testing without API key
-      const userMessage = { role: "user", content: value.trim() };
-      setMessages((prev) => [...prev, userMessage]);
-      
-      setValue("");
-      adjustHeight(true);
-      
-      setTimeout(() => {
-        const mockMessage = {
-          role: "assistant",
-          content: "Here are some popular OWASP projects (mock data for testing):",
-          cards: mockCards
-        };
-        setMessages((prev) => [...prev, mockMessage]);
-      }, 500);
+      const errorMessage = { 
+        role: "assistant", 
+        content: "Please configure your HuggingFace API key in settings to use Nest AI." 
+      };
+      setMessages((prev) => [...prev, errorMessage]);
       return;
     }
 
@@ -201,6 +175,7 @@ export function ChatInterface() {
         body: JSON.stringify({
           message: currentMessage,
           config,
+          nestApiKey,
         }),
       });
 
@@ -257,6 +232,7 @@ export function ChatInterface() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
+              style={{marginTop: "-288px"}}
               className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -mt-48 w-[90%] max-w-md bg-[#111111] border border-white/10 rounded-2xl shadow-2xl z-[9999] overflow-hidden"
             >
               <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
@@ -301,7 +277,7 @@ export function ChatInterface() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    API Key
+                    HuggingFace API Key
                   </label>
                   <input
                     type="password"
@@ -312,6 +288,35 @@ export function ChatInterface() {
                     placeholder="Enter your HuggingFace API key"
                     className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    OWASP Nest API Key
+                  </label>
+                  <input
+                    type="password"
+                    value={nestApiKey}
+                    onChange={(e) => setNestApiKey(e.target.value)}
+                    placeholder="Enter your OWASP Nest API key"
+                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <p className="mt-2 text-xs text-gray-400">
+                    Optional: Required for MCP server integration
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-white/10">
+                  <button
+                    onClick={() => {
+                      setConfig({ provider: "huggingface", model: "meta-llama/Llama-3.1-8B-Instruct", apiKey: "" });
+                      setNestApiKey("");
+                      localStorage.removeItem("hf_api_key");
+                      localStorage.removeItem("nest_api_key");
+                      localStorage.removeItem("ai_model");
+                    }}
+                    className="w-full px-4 py-2.5 bg-transparent border border-white-500/20 rounded-xl text-white hover:bg-blue-500/20 transition-colors text-sm font-medium"
+                  >
+                    Clear All Settings
+                  </button>
                 </div>
               </div>
             </motion.div>

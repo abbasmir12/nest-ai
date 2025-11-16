@@ -13,6 +13,13 @@ interface CardData {
   subtitle?: string;
   imgSrc?: string;
   link?: string;
+  icon?: string;  // For avatar URLs
+  metadata?: {
+    leaders?: string[];
+    level?: string;
+    github?: string;
+    [key: string]: any;
+  };
 }
 
 interface StaggerCardProps {
@@ -29,10 +36,80 @@ const StaggerCard: React.FC<StaggerCardProps> = ({
   cardSize,
 }) => {
   const isCenter = position === 0;
+  
+  // Debug: Log card data when it becomes center
+  React.useEffect(() => {
+    if (isCenter) {
+      const cardUrl = (card as any).url || card.link;
+      console.log('📍 Center card data:', {
+        title: card.title,
+        url: cardUrl,
+        link: card.link,
+        hasUrl: !!cardUrl,
+        metadata: card.metadata
+      });
+    }
+  }, [isCenter, card]);
+  
+  // Format bottom text based on card type
+  let bottomText = card.subtitle;
+  
+  // For projects: show leaders
+  const leaders = card.metadata?.leaders || [];
+  if (leaders.length > 0) {
+    bottomText = `- by ${leaders.slice(0, 2).join(", ")}${leaders.length > 2 ? "..." : ""}`;
+  }
+  
+  // For events: show date and location
+  const cardData = card as any;
+  if (cardData.date || cardData.location) {
+    const datePart = cardData.date || '';
+    const locationPart = cardData.location || '';
+    if (datePart && locationPart) {
+      bottomText = `${datePart} • ${locationPart}`;
+    } else {
+      bottomText = datePart || locationPart;
+    }
+  }
+  
+  const leadersText = bottomText;
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Use url field (from DisplayCardData) instead of link
+    const cardUrl = (card as any).url || card.link;
+    
+    console.log('Card clicked!', {
+      isCenter,
+      hasUrl: !!cardUrl,
+      url: cardUrl,
+      position,
+      title: card.title
+    });
+    
+    if (isCenter && cardUrl) {
+      // If center card and has URL, open it
+      console.log('🔗 Opening URL:', cardUrl);
+      const opened = window.open(cardUrl, "_blank", "noopener,noreferrer");
+      if (!opened) {
+        console.error('❌ Failed to open window - popup blocked?');
+        // Fallback: try without window features
+        window.open(cardUrl, "_blank");
+      }
+    } else if (!isCenter) {
+      // Move to center
+      console.log('➡️ Moving card to center, position:', position);
+      handleMove(position);
+    } else {
+      console.warn('⚠️ Center card but no URL!', card);
+    }
+  };
 
   const CardContent = (
     <div
-      onClick={() => handleMove(position)}
+      onClick={handleCardClick}
       className={cn(
         "absolute left-1/2 top-1/2 cursor-pointer border-2 p-8 transition-all duration-500 ease-in-out",
         isCenter
@@ -65,12 +142,13 @@ const StaggerCard: React.FC<StaggerCardProps> = ({
           height: 2,
         }}
       />
-      {card.imgSrc && (
+      {(card.imgSrc || card.icon) && (
         <img
-          src={card.imgSrc}
+          src={card.icon || card.imgSrc}
           alt={card.title}
           className={cn(
-            "mb-4 h-14 w-12 object-cover object-top",
+            "mb-4 object-cover",
+            card.icon ? "h-16 w-16 rounded-full" : "h-14 w-12 object-top",
             isCenter ? "bg-gray-200" : "bg-gray-800"
           )}
           style={{
@@ -96,31 +174,18 @@ const StaggerCard: React.FC<StaggerCardProps> = ({
       >
         {card.description}
       </p>
-      {card.subtitle && (
+      {leadersText && (
         <p
           className={cn(
-            "absolute bottom-8 left-8 right-8 mt-2 text-sm italic",
-            isCenter ? "text-black/70" : "text-gray-400"
+            "absolute bottom-8 left-8 right-8 mt-2 text-sm font-medium",
+            isCenter ? "text-black" : "text-gray-400"
           )}
         >
-          {card.subtitle}
+          {leadersText}
         </p>
       )}
     </div>
   );
-
-  if (card.link && isCenter) {
-    return (
-      <a
-        href={card.link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block"
-      >
-        {CardContent}
-      </a>
-    );
-  }
 
   return CardContent;
 };
@@ -138,6 +203,7 @@ export const StaggerCards: React.FC<StaggerCardsProps> = ({
   const [cardsList, setCardsList] = useState<CardData[]>(
     cards.map((card, index) => ({ ...card, tempId: index }))
   );
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const handleMove = (steps: number) => {
     const newList = [...cardsList];
@@ -147,12 +213,14 @@ export const StaggerCards: React.FC<StaggerCardsProps> = ({
         if (!item) return;
         newList.push({ ...item, tempId: Math.random() });
       }
+      setCurrentIndex((prev) => (prev + steps) % cards.length);
     } else {
       for (let i = steps; i < 0; i++) {
         const item = newList.pop();
         if (!item) return;
         newList.unshift({ ...item, tempId: Math.random() });
       }
+      setCurrentIndex((prev) => (prev + steps + cards.length) % cards.length);
     }
     setCardsList(newList);
   };
@@ -170,6 +238,7 @@ export const StaggerCards: React.FC<StaggerCardsProps> = ({
 
   useEffect(() => {
     setCardsList(cards.map((card, index) => ({ ...card, tempId: index })));
+    setCurrentIndex(0);
   }, [cards]);
 
   if (cards.length === 0) {
@@ -212,7 +281,7 @@ export const StaggerCards: React.FC<StaggerCardsProps> = ({
           </div>
         );
       })}
-      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-3 items-center">
         <button
           onClick={() => handleMove(-1)}
           className="flex h-14 w-14 items-center justify-center text-2xl transition-all duration-300 bg-[#2A2A2A] border-2 border-white/20 hover:bg-white hover:text-black text-white rounded-lg hover:scale-110"
@@ -220,6 +289,12 @@ export const StaggerCards: React.FC<StaggerCardsProps> = ({
         >
           <ChevronLeft />
         </button>
+        
+        {/* Page Indicator */}
+        <div className="px-4 py-2 bg-[#2A2A2A] border-2 border-white/20 rounded-lg text-white text-sm font-medium">
+          {currentIndex + 1} of {cards.length}
+        </div>
+        
         <button
           onClick={() => handleMove(1)}
           className="flex h-14 w-14 items-center justify-center text-2xl transition-all duration-300 bg-[#2A2A2A] border-2 border-white/20 hover:bg-white hover:text-black text-white rounded-lg hover:scale-110"

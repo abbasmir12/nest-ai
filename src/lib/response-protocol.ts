@@ -17,13 +17,24 @@ export interface CardData {
   date?: string;
   link: string;
   type: 'project' | 'event' | 'issue' | 'contributor' | 'chapter';
+  icon?: string;
+  metadata?: {
+    leaders?: string[];
+    level?: string;
+    github?: string;
+    [key: string]: any;
+  };
 }
 
 export const RESPONSE_PROTOCOL = `
-# Structured Response Protocol
+# 🚨 CRITICAL: Structured Response Protocol
 
-When responding to user queries about OWASP Nest, you MUST structure your response in the following JSON format:
+## MANDATORY FORMAT - NO EXCEPTIONS!
 
+You MUST return ONLY valid JSON in this EXACT format. NO extra text, NO explanations, NO markdown except the json code block.
+
+### CORRECT Format:
+\`\`\`json
 {
   "summary": "A natural language summary of the results",
   "intent": "projects|events|issues|contributors|chapters|general",
@@ -33,20 +44,78 @@ When responding to user queries about OWASP Nest, you MUST structure your respon
       "description": "Brief description (max 100 chars)",
       "date": "Optional date string",
       "link": "Full URL to the resource",
-      "type": "project|event|issue|contributor|chapter"
+      "type": "project|event|issue|contributor|chapter",
+      "icon": "Optional avatar/image URL"
     }
   ]
 }
+\`\`\`
 
-## Rules:
+## 🚨 CRITICAL RULES - FOLLOW EXACTLY:
 
-1. ALWAYS return valid JSON wrapped in \`\`\`json code blocks
-2. The "summary" should be a friendly, conversational response
-3. The "intent" must match the user's query type
-4. Each card must have: title, description, link, and type
-5. Keep descriptions under 100 characters
-6. Use full URLs for links (https://...)
-7. For dates, use human-readable format (e.g., "Dec 15, 2025")
+1. **ONLY return the JSON** - NO text before or after the code block
+2. **ALWAYS wrap in \`\`\`json code blocks** - This is mandatory
+3. **NO explanations** - Don't add "Here's the response:" or "Hope this helps!"
+4. **NO extra markdown** - Just the json code block, nothing else
+5. **Valid JSON only** - Must parse without errors
+6. **All required fields** - summary, intent, and cards array
+
+## ❌ WRONG Examples (DO NOT DO THIS):
+
+### Wrong 1: Extra text before/after
+\`\`\`
+Here is the response:
+\`\`\`json
+{ ... }
+\`\`\`
+Hope this helps!
+\`\`\`
+❌ NO! Just return the JSON block!
+
+### Wrong 2: No code block
+\`\`\`
+{ "summary": "...", "intent": "...", "cards": [] }
+\`\`\`
+❌ NO! Must wrap in \`\`\`json block!
+
+### Wrong 3: Plain text response
+\`\`\`
+Here are some OWASP projects: ZAP, Juice Shop, etc.
+\`\`\`
+❌ NO! Must return structured JSON!
+
+## ✅ CORRECT Example:
+
+\`\`\`json
+{
+  "summary": "Here are some popular OWASP security projects:",
+  "intent": "projects",
+  "cards": [
+    {
+      "title": "OWASP ZAP",
+      "description": "World's most widely used web app scanner",
+      "link": "https://owasp.org/www-project-zap/",
+      "type": "project"
+    }
+  ]
+}
+\`\`\`
+
+## Field Requirements:
+
+- **summary**: Friendly, conversational text (1-2 sentences)
+- **intent**: Must be one of: projects, events, issues, contributors, chapters, general
+- **cards**: Array of card objects (can be empty [])
+- **title**: Card title (required)
+- **description**: Brief description, max 100 chars (required)
+- **link**: Full URL starting with https:// (required)
+- **type**: Must match intent (required)
+- **icon**: Avatar/image URL (optional, use for contributors)
+- **date**: Human-readable date (optional, use for events)
+- **metadata**: Object with additional data (optional)
+  - **leaders**: Array of leader names for projects
+  - **level**: Project level (flagship, lab, incubator)
+  - **github**: GitHub URL
 
 ## Examples:
 
@@ -62,14 +131,23 @@ Response:
     {
       "title": "OWASP ZAP",
       "description": "World's most widely used web app scanner",
-      "link": "https://owasp.org/www-project-zap/",
-      "type": "project"
+      "link": "https://github.com/zaproxy/zaproxy",
+      "type": "project",
+      "metadata": {
+        "leaders": ["Simon Bennetts"],
+        "level": "flagship",
+        "github": "https://github.com/zaproxy/zaproxy"
+      }
     },
     {
       "title": "OWASP Top 10",
       "description": "Standard awareness document for web security",
       "link": "https://owasp.org/www-project-top-ten/",
-      "type": "project"
+      "type": "project",
+      "metadata": {
+        "leaders": ["Andrew van der Stock"],
+        "level": "flagship"
+      }
     }
   ]
 }
@@ -114,38 +192,88 @@ Response:
 }
 \`\`\`
 
+### Example 4: Contributors Query
+User: "Show me OWASP contributors"
+
+Response:
+\`\`\`json
+{
+  "summary": "Here are the newest OWASP community members:",
+  "intent": "contributors",
+  "cards": [
+    {
+      "title": "Abbas Mir (@abbasmir12)",
+      "description": "Joined Aug 16, 2025 • Last active Nov 6, 2025",
+      "icon": "https://avatars.githubusercontent.com/u/226835672?v=4",
+      "link": "https://github.com/abbasmir12",
+      "type": "contributor"
+    }
+  ]
+}
+\`\`\`
+
 IMPORTANT: You must ALWAYS use the MCP tools to fetch real data before responding. Never make up data.
 `;
 
 /**
  * Parse AI response and extract structured data
+ * Handles multiple formats:
+ * 1. ```json { ... } ```
+ * 2. ``` { ... } ```
+ * 3. { ... } (plain JSON)
+ * 4. Text before/after JSON
  */
 export function parseStructuredResponse(aiResponse: string): StructuredResponse | null {
   try {
-    // Extract JSON from code blocks
-    const jsonMatch = aiResponse.match(/```json\s*([\s\S]*?)\s*```/);
-    if (!jsonMatch) {
-      // Try to find JSON without code blocks
-      const jsonStart = aiResponse.indexOf('{');
-      const jsonEnd = aiResponse.lastIndexOf('}');
-      if (jsonStart !== -1 && jsonEnd !== -1) {
-        const jsonStr = aiResponse.substring(jsonStart, jsonEnd + 1);
-        return JSON.parse(jsonStr);
+    let jsonStr = '';
+
+    // Method 1: Try to extract from ```json code blocks
+    const jsonCodeBlock = aiResponse.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonCodeBlock) {
+      jsonStr = jsonCodeBlock[1].trim();
+    } 
+    // Method 2: Try to extract from ``` code blocks (without json keyword)
+    else {
+      const codeBlock = aiResponse.match(/```\s*([\s\S]*?)\s*```/);
+      if (codeBlock) {
+        jsonStr = codeBlock[1].trim();
       }
-      return null;
     }
 
-    const jsonStr = jsonMatch[1];
+    // Method 3: If no code blocks, find JSON by braces
+    if (!jsonStr) {
+      // Find the first { and last } to extract JSON
+      const firstBrace = aiResponse.indexOf('{');
+      const lastBrace = aiResponse.lastIndexOf('}');
+      
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        jsonStr = aiResponse.substring(firstBrace, lastBrace + 1);
+      } else {
+        console.error('No JSON found in response');
+        return null;
+      }
+    }
+
+    // Clean up any remaining markdown or extra characters
+    jsonStr = jsonStr
+      .replace(/^```json\s*/g, '')  // Remove ```json prefix
+      .replace(/^```\s*/g, '')       // Remove ``` prefix
+      .replace(/\s*```$/g, '')       // Remove ``` suffix
+      .trim();
+
+    // Parse the JSON
     const parsed = JSON.parse(jsonStr);
 
     // Validate structure
     if (!parsed.summary || !parsed.intent) {
+      console.error('Invalid structure: missing summary or intent');
       return null;
     }
 
     return parsed as StructuredResponse;
   } catch (error) {
     console.error('Failed to parse structured response:', error);
+    console.error('Response was:', aiResponse.substring(0, 500)); // Log first 500 chars for debugging
     return null;
   }
 }
@@ -161,7 +289,12 @@ export function convertMCPDataToCards(data: any, type: CardData['type']): CardDa
       title: p.name,
       description: p.description.substring(0, 100),
       link: p.url,
-      type: 'project' as const
+      type: 'project' as const,
+      metadata: {
+        leaders: p.leaders || [],
+        level: p.level,
+        github: p.githubLink
+      }
     })));
   }
 

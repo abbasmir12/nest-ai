@@ -9,6 +9,12 @@ interface DisplayCardProps extends DisplayCardData {
   iconClassName?: string;
   titleClassName?: string;
   onClick?: () => void;
+  metadata?: {
+    leaders?: string[];
+    level?: string;
+    github?: string;
+    [key: string]: any;
+  };
 }
 
 function getIconForType(type?: string) {
@@ -38,6 +44,7 @@ export function DisplayCard({
   iconClassName = "text-blue-500",
   titleClassName = "text-blue-500",
   onClick,
+  metadata,
 }: DisplayCardProps) {
   const handleClick = () => {
     if (link) {
@@ -45,6 +52,12 @@ export function DisplayCard({
     }
     onClick?.();
   };
+
+  // Get leaders/developers from metadata
+  const leaders = metadata?.leaders || [];
+  const leadersText = leaders.length > 0 
+    ? `- by ${leaders.slice(0, 2).join(", ")}${leaders.length > 2 ? "..." : ""}`
+    : null;
 
   return (
     <div
@@ -54,6 +67,14 @@ export function DisplayCard({
         className
       )}
       onClick={handleClick}
+      role={link ? "button" : undefined}
+      tabIndex={link ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (link && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
     >
       <div>
         <span className="relative inline-block rounded-full bg-blue-800 p-1">
@@ -61,10 +82,12 @@ export function DisplayCard({
         </span>
         <p className={cn("text-lg font-medium", titleClassName)}>{title}</p>
       </div>
-      <p className="whitespace-nowrap text-lg overflow-hidden text-ellipsis">
+      <p className="whitespace-nowrap text-xl overflow-hidden text-ellipsis">
         {description}
       </p>
-      <p className="text-muted-foreground">{date}</p>
+      <p className="text-sm text-red-400 font-medium">
+        {leadersText || date}
+      </p>
     </div>
   );
 }
