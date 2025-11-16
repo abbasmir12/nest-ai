@@ -25,7 +25,13 @@ yarn-error.log*
 
 #ide
 .kiro
+!.kiro/settings/
+!.kiro/settings/mcp.json
 .vscode
+BUIDL.md
+
+# Note: .kiro/settings/mcp.json is tracked but contains placeholder
+# Replace YOUR_NEST_API_KEY_HERE with your actual key locally
 
 # local env files
 .env*.local
