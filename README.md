@@ -1,8 +1,6 @@
 # Nest AI
 
-Nest AI transforms how developers and security professionals interact with OWASP resources by providing a natural language interface to discover projects, events, issues, contributors, and chapters. Instead of navigating complex APIs or documentation, users can simply ask questions in plain English and receive intelligent, contextual responses with interactive visual cards.
-
-![nest-ai-interface](public/interface.png)
+Nest AI transforms how developers and security professionals interact with OWASP resources by providing a natural language interface powered by **real-time data from the OWASP Nest API**. Users can discover projects, events, issues, contributors, and chapters by simply asking questions in plain English and receiving intelligent, contextual responses with interactive visual cards.
 
 ## The Problem
 
@@ -12,9 +10,23 @@ The OWASP ecosystem is vast and rich with resources, but discovering relevant pr
 
 Nest AI bridges this gap by combining three powerful technologies:
 
-1. **AI-Powered Intent Detection**: Uses HuggingFace's language models to understand user queries in natural language
-2. **Model Context Protocol (MCP)**: A middleware layer that abstracts OWASP Nest API interactions into semantic tools
-3. **Interactive UI**: Modern, animated interface that presents data as visually appealing, actionable cards
+- **AI-Powered Intent Detection**: Uses HuggingFace's language models to understand user queries in natural language
+- **Model Context Protocol (MCP)**: A middleware layer that abstracts OWASP Nest API interactions into semantic tools
+- **Interactive UI**: Modern, animated interface that presents data as visually appealing, actionable cards
+
+## Live Data Integration
+
+**Nest AI now uses real-time data from the OWASP Nest API!** 
+
+Thanks to the Model Context Protocol (MCP) integration, all queries fetch live data directly from OWASP's official API. This means:
+
+- ✅ **Real Projects**: Discover actual OWASP projects with current status, leaders, and links
+- ✅ **Live Events**: Get up-to-date information on upcoming conferences, meetups, and workshops
+- ✅ **Active Issues**: Find real contribution opportunities from OWASP GitHub repositories
+- ✅ **Current Contributors**: See who's actively contributing to OWASP projects right now
+- ✅ **Active Chapters**: Connect with real local OWASP chapters in your area
+
+The MCP server handles all API authentication and data fetching, providing a seamless experience where users simply ask questions and receive accurate, current information from the OWASP ecosystem.
 
 ## How It Works
 
@@ -22,10 +34,10 @@ Nest AI bridges this gap by combining three powerful technologies:
 
 ```
 User Query → AI Provider (HuggingFace) → MCP Server → OWASP Nest API
-                                              ↓
-                                    Structured Response
-                                              ↓
-                                    Interactive Cards UI
+                                               ↓
+                                     Structured Response
+                                               ↓
+                                     Interactive Cards UI
 ```
 
 ### Workflow
@@ -46,7 +58,6 @@ User Query → AI Provider (HuggingFace) → MCP Server → OWASP Nest API
 5. **Response Generation**: AI synthesizes the data into a conversational summary
 
 6. **Visual Presentation**: Results are displayed as animated, interactive cards with direct links to resources
-
 
 ## Real-World Use Cases
 
@@ -96,7 +107,7 @@ User Query → AI Provider (HuggingFace) → MCP Server → OWASP Nest API
 
 **Nest AI Response**:
 - Detects intent: contribution opportunities with priority filter
-- Calls `nest_get_issues` with priority=high parameter
+- Calls `nest_get_issues` with `priority=high` parameter
 - Returns issue cards displaying:
   - Issue title and description
   - Project name
@@ -152,19 +163,6 @@ User Query → AI Provider (HuggingFace) → MCP Server → OWASP Nest API
 - **Express** - HTTP server framework
 - **Zod** - Schema validation
 
-
-## Important Note: Mock Data
-
-Due to not having access to the OWASP Nest API key during development, this project currently uses mock data for demonstration purposes. However, the architecture and implementation are production-ready:
-
-- All MCP tools are fully implemented with proper error handling
-- API integration points are clearly defined in `mcp-server/stdio-server.js`
-- Data transformation logic is in place
-- Response structures match expected OWASP Nest API formats
-- Once an API key is provided, switching to real data requires only updating the `NEST_API_BASE` URL and adding authentication headers
-
-The mock data accurately represents the expected structure of OWASP Nest API responses, ensuring the MVP demonstrates the full user experience and interaction patterns.
-
 ## Getting Started
 
 ### Prerequisites
@@ -214,7 +212,7 @@ npm run mcp
 
 4. Click the settings icon (top-right) and enter your HuggingFace API key
 
-5. Start asking questions about OWASP resources
+5. Start asking questions about OWASP resources!
 
 ### Getting a HuggingFace API Key
 
@@ -248,12 +246,12 @@ nest-ai/
 │       └── index.ts           # TypeScript definitions
 ├── mcp-server/
 │   ├── stdio-server.js        # MCP server implementation
+│   ├── http-server.js         # HTTP wrapper for MCP
 │   └── package.json           # MCP dependencies
 └── scripts/
     ├── setup.sh               # Unix setup script
     └── setup.ps1              # Windows setup script
 ```
-
 
 ## MCP Tools Reference
 
@@ -318,6 +316,7 @@ Nest AI uses a privacy-first approach where users provide their own HuggingFace 
 ### AI Model Configuration
 
 The default model is `meta-llama/Llama-3.1-8B-Instruct`, chosen for:
+
 - Strong natural language understanding
 - Good performance on intent detection
 - Ability to follow structured output formats
@@ -328,6 +327,7 @@ Users can configure alternative models through the settings panel if desired.
 ### System Prompt Engineering
 
 The AI is guided by a carefully crafted system prompt that:
+
 - Defines its role as an OWASP assistant
 - Lists available MCP tools and their purposes
 - Specifies the structured response format
@@ -337,6 +337,7 @@ The AI is guided by a carefully crafted system prompt that:
 ### Response Protocol
 
 Nest AI uses a structured response protocol where the AI returns JSON containing:
+
 - `summary`: Natural language explanation for the user
 - `cards`: Array of structured data objects for visual display
 
@@ -359,36 +360,58 @@ npm run start
 
 Create a `.env.local` file with:
 
-```env
+```bash
 # Optional: Default MCP server URL
 MCP_SERVER_URL=http://localhost:3001/mcp
-
-# Optional: OWASP Nest API base URL (when available)
-NEST_API_BASE=https://nest.owasp.org/api/v1
-
-# Optional: OWASP Nest API key (when available)
-NEST_API_KEY=your_api_key_here
 ```
 
-Note: HuggingFace API keys are provided by users through the UI and never stored server-side.
+**Note**: HuggingFace API keys are provided by users through the UI and never stored server-side. The OWASP Nest API is accessed through the MCP server, which handles all authentication automatically.
 
+## Future Enhancements & Roadmap
 
-## Future Enhancements
+We're continuously improving Nest AI with many exciting features planned:
 
-1. **Real API Integration**: Connect to live OWASP Nest API once access is granted
-2. **Conversation History**: Persist chat sessions across page reloads
-3. **Advanced Filters**: More granular search and filtering options
-4. **Bookmarking**: Save favorite projects, events, or issues
-5. **Notifications**: Alert users about new events or issues matching their interests
-6. **Multi-language Support**: Internationalization for global OWASP community
-7. **Voice Input**: Speech-to-text for hands-free queries
-8. **Export Features**: Download results as PDF or CSV
-9. **Collaborative Features**: Share queries and results with team members
-10. **Analytics Dashboard**: Track contribution opportunities and community engagement
+### Near-Term Improvements
+- **Conversation History**: Persist chat sessions across page reloads with local storage
+- **Advanced Filters**: More granular search and filtering options for precise results
+- **Bookmarking System**: Save favorite projects, events, or issues for quick access
+- **Enhanced Error Handling**: Better feedback when API calls fail or timeout
+- **Response Caching**: Cache frequent queries to improve performance
+- **Improved Card Interactions**: More interactive elements and hover states
 
+### Mid-Term Features
+- **Notifications**: Alert users about new events or issues matching their interests
+- **Multi-language Support**: Internationalization for the global OWASP community
+- **Voice Input**: Speech-to-text for hands-free queries
+- **Export Features**: Download results as PDF, CSV, or JSON
+- **Dark Mode**: Full dark theme support with user preference persistence
+- **Search History**: Quick access to previous queries and results
 
+### Long-Term Vision
+- **Collaborative Features**: Share queries and results with team members
+- **Analytics Dashboard**: Track contribution opportunities and community engagement metrics
+- **Smart Recommendations**: AI-powered suggestions based on user interests and history
+- **Integration Hub**: Connect with GitHub, Slack, and other developer tools
+- **Mobile App**: Native iOS and Android applications
+- **Advanced AI Models**: Support for multiple AI providers and custom fine-tuned models
+- **Personalized Feed**: Curated OWASP content based on user preferences
+- **Community Features**: Direct messaging, forums, and collaboration tools
 
+We're committed to making Nest AI the go-to interface for the OWASP community. Contributions and feature requests are always welcome!
 
+## Contributing
 
+We welcome contributions from the community! Whether it's:
 
+- Bug reports and fixes
+- Feature requests and implementations
+- Documentation improvements
+- UI/UX enhancements
+- Performance optimizations
+
+Please check out our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
