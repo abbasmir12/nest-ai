@@ -224,6 +224,8 @@ npm run mcp
 4. Create a new token with read permissions
 5. Copy the token and paste it in Nest AI settings
 
+**Note**: The default model (MiniMaxAI/MiniMax-M2) is available for free through HuggingFace's Inference API. This model was specifically chosen for its superior understanding of OWASP-related queries and better structured output generation.
+
 ## Project Structure
 
 ```
@@ -317,14 +319,22 @@ Nest AI uses a privacy-first approach where users provide their own HuggingFace 
 
 ### AI Model Configuration
 
-The default model is `meta-llama/Llama-3.1-8B-Instruct`, chosen for:
+The default model is `MiniMaxAI/MiniMax-M2`, chosen for:
 
-- Strong natural language understanding
-- Good performance on intent detection
-- Ability to follow structured output formats
-- Free availability through HuggingFace Inference API
+- **Superior natural language understanding** - Significantly better at comprehending complex queries
+- **Excellent context awareness** - Maintains conversation context across multiple turns
+- **Enhanced intent detection** - More accurately identifies what users are asking for
+- **Better structured output** - Consistently follows the response protocol format
+- **Improved reasoning** - Makes smarter decisions about which MCP tools to use
+- **Free availability** - Available through HuggingFace Inference API
 
-Users can configure alternative models through the settings panel if desired.
+**Why MiniMax-M2 over other models?**
+- Outperforms Llama 3.1 in understanding OWASP-specific queries
+- Better at parsing user intent and selecting appropriate tools
+- More reliable structured JSON responses
+- Handles multi-step workflows more effectively
+
+Users can configure alternative models through the settings panel if desired, but MiniMax-M2 is highly recommended for the best experience.
 
 ### System Prompt Engineering
 
