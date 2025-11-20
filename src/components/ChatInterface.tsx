@@ -87,7 +87,7 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<Array<{ role: string; content: string; cards?: any[] }>>([]);
   const [config, setConfig] = useState<AIConfig>({
     provider: "huggingface",
-    model: "meta-llama/Llama-3.1-8B-Instruct",
+    model: "MiniMaxAI/MiniMax-M2",
     apiKey: "",
   });
   const [nestApiKey, setNestApiKey] = useState("");
@@ -271,7 +271,7 @@ export function ChatInterface() {
                     onChange={(e) =>
                       setConfig({ ...config, model: e.target.value })
                     }
-                    placeholder="meta-llama/Llama-3.1-8B-Instruct"
+                    placeholder="MiniMaxAI/MiniMax-M2"
                     className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
@@ -307,7 +307,7 @@ export function ChatInterface() {
                 <div className="pt-4 border-t border-white/10">
                   <button
                     onClick={() => {
-                      setConfig({ provider: "huggingface", model: "meta-llama/Llama-3.1-8B-Instruct", apiKey: "" });
+                      setConfig({ provider: "huggingface", model: "MiniMaxAI/MiniMax-M2", apiKey: "" });
                       setNestApiKey("");
                       localStorage.removeItem("hf_api_key");
                       localStorage.removeItem("nest_api_key");
